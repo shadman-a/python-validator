@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h2>New Run</h2>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <form method="post" enctype="multipart/form-data">
+    <label>Mode
+      <select name="mode">
+        <option value="single">Single CSV</option>
+        <option value="compare">Compare CSVs</option>
+      </select>
+    </label>
+
+    <label>Rules file
+      <select name="rule_file">
+        {% for rule in rules %}
+        <option value="{{ rule }}">{{ rule }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    <div class="form-grid">
+      <div>
+        <label>Left CSV path
+          <input type="text" name="left_path" placeholder="/path/to/left.csv" />
+        </label>
+        <label>Upload left CSV
+          <input type="file" name="left_upload" />
+        </label>
+      </div>
+      <div>
+        <label>Right CSV path
+          <input type="text" name="right_path" placeholder="/path/to/right.csv" />
+        </label>
+        <label>Upload right CSV
+          <input type="file" name="right_upload" />
+        </label>
+      </div>
+    </div>
+
+    <fieldset>
+      <legend>Compare mode options</legend>
+      <label>
+        <input type="radio" name="mapping_choice" value="create" checked /> Create new mapping
+      </label>
+      <label>
+        <input type="radio" name="mapping_choice" value="existing" /> Use existing mapping
+      </label>
+      <label>Mapping file
+        <select name="mapping_file">
+          <option value="">Select mapping</option>
+          {% for mapping in mappings %}
+          <option value="{{ mapping }}">{{ mapping }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </fieldset>
+
+    <button class="button" type="submit">Continue</button>
+  </form>
+</section>
+{% endblock %}

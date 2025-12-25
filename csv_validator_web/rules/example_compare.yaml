@@ -1,0 +1,20 @@
+mode: compare
+name: Example compare rules
+
+validators:
+  - type: required_columns
+    severity: ERROR
+    columns:
+      left: [Integration_Key__c]
+      right: [Integration_Key__c]
+
+  - type: unique_key
+    severity: ERROR
+    key:
+      left: Integration_Key__c
+      right: Integration_Key__c
+
+  - type: compare_fields
+    severity: WARN
+    fields: [primary_language, secondary_phone]
+    ignore_if_both_blank: true

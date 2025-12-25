@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h2>Welcome</h2>
+  <p>Validate CSV data quality with file-based rules and mappings.</p>
+  <div class="actions">
+    <a class="button" href="/new">New Run</a>
+    <a class="button" href="/runs">Runs</a>
+    <a class="button" href="/mappings">Mappings</a>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Recent Runs</h3>
+  {% if runs %}
+  <table>
+    <thead>
+      <tr><th>Run</th><th>Mode</th><th>Rows</th><th>Errors</th><th>Warnings</th></tr>
+    </thead>
+    <tbody>
+    {% for run in runs %}
+      <tr>
+        <td><a href="/runs/{{ run.run_id }}">{{ run.run_id }}</a></td>
+        <td>{{ run.mode }}</td>
+        <td>{{ run.rows_left }}</td>
+        <td>{{ run.errors }}</td>
+        <td>{{ run.warnings }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No runs yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

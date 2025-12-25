@@ -1,0 +1,22 @@
+[project]
+name = "csv-validator-web"
+version = "0.1.0"
+description = "Lightweight CSV validation web UI"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi",
+  "uvicorn",
+  "jinja2",
+  "polars",
+  "pyyaml",
+  "rapidfuzz",
+  "python-multipart",
+  "orjson",
+]
+
+[project.optional-dependencies]
+log = ["rich"]
+
+[tool.setuptools.packages.find]
+where = ["src"]

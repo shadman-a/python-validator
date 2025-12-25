@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h2>Mapping</h2>
+  <form method="post" action="/mapping/save">
+    <input type="hidden" name="left_path" value="{{ left_path }}" />
+    <input type="hidden" name="right_path" value="{{ right_path }}" />
+    {% if rule_file %}<input type="hidden" name="rule_file" value="{{ rule_file }}" />{% endif %}
+
+    <label>Mapping name
+      <input type="text" name="mapping_name" value="{{ mapping_name }}" placeholder="mapping_name" required />
+    </label>
+
+    <div class="form-grid">
+      <label>Left Key
+        <input type="text" name="left_key" value="{{ mapping.keys.left if mapping else '' }}" required />
+      </label>
+      <label>Right Key
+        <input type="text" name="right_key" value="{{ mapping.keys.right if mapping else '' }}" required />
+      </label>
+    </div>
+
+    {% if left_columns %}
+      <button class="button" type="button" data-action="auto-guess" data-left="{{ left_path }}" data-right="{{ right_path }}">Auto-guess mappings</button>
+    {% endif %}
+
+    <table class="mapping-table" data-has-columns="{{ 'true' if left_columns else 'false' }}">
+      <thead>
+        <tr>
+          <th>Logical Field</th>
+          <th>Left Column</th>
+          <th>Right Column</th>
+          <th>Skip</th>
+          <th>Normalize</th>
+          <th>Value Map (JSON)</th>
+          <th>Confidence</th>
+          <th>Reason</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% if mapping %}
+        {% for field, config in mapping.fields.items() %}
+        <tr>
+          <td><input type="text" name="field_name" value="{{ field }}" /></td>
+          <td><input type="text" name="left_column" value="{{ config.left }}" /></td>
+          <td><input type="text" name="right_column" value="{{ config.right }}" /></td>
+          <td><input type="checkbox" name="skip" value="{{ loop.index0 }}" {% if config.skip %}checked{% endif %} /></td>
+          <td><input type="text" name="normalize" value="{{ config.normalize | join(', ') }}" /></td>
+          <td><textarea name="value_map">{{ config.value_map | tojson }}</textarea></td>
+          <td class="confidence"></td>
+          <td class="reason"></td>
+          <td><button type="button" data-action="remove-row">Remove</button></td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        {% for suggestion in suggestions %}
+        <tr data-left="{{ suggestion.left_column }}">
+          <td><input type="text" name="field_name" value="{{ suggestion.left_column|lower|replace(' ', '_') }}" /></td>
+          <td>
+            <select name="left_column">
+              {% for col in left_columns %}
+              <option value="{{ col }}" {% if col == suggestion.left_column %}selected{% endif %}>{{ col }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td>
+            <select name="right_column">
+              {% for col in right_columns %}
+              <option value="{{ col }}" {% if col == suggestion.best_right %}selected{% endif %}>{{ col }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td><input type="checkbox" name="skip" value="{{ loop.index0 }}" /></td>
+          <td><input type="text" name="normalize" value="" placeholder="trim, upper" /></td>
+          <td><textarea name="value_map"></textarea></td>
+          <td class="confidence">{{ suggestion.confidence }}</td>
+          <td class="reason">{{ suggestion.reasons | join(', ') }}</td>
+          <td><button type="button" data-action="remove-row">Remove</button></td>
+        </tr>
+        {% endfor %}
+      {% endif %}
+      </tbody>
+    </table>
+
+    <div class="actions">
+      <button class="button" type="button" data-action="add-row">Add Row</button>
+      <button class="button" type="submit" name="action" value="save">Save Mapping</button>
+      {% if left_path and right_path %}
+      <button class="button primary" type="submit" name="action" value="save_and_run">Save and Start Run</button>
+      {% endif %}
+    </div>
+  </form>
+
+  {% if mapping_yaml %}
+  <section class="card">
+    <h3>Mapping YAML</h3>
+    <textarea class="yaml-view" readonly>{{ mapping_yaml }}</textarea>
+    <button class="button" data-action="copy-yaml" type="button">Copy mapping YAML</button>
+    <a class="button" href="/mappings/download/{{ mapping_name }}.yaml">Download mapping YAML</a>
+  </section>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,109 @@
+function setupIssueFilters() {
+  const table = document.getElementById('issues-table');
+  if (!table) return;
+  const searchInput = document.getElementById('issue-search');
+  const severitySelect = document.getElementById('issue-severity');
+  const typeSelect = document.getElementById('issue-type');
+  const rows = Array.from(table.querySelectorAll('tbody tr'));
+  const types = new Set();
+  rows.forEach(row => {
+    const type = row.children[2]?.innerText || '';
+    if (type) types.add(type);
+  });
+  types.forEach(type => {
+    const opt = document.createElement('option');
+    opt.value = type;
+    opt.textContent = type;
+    typeSelect.appendChild(opt);
+  });
+
+  function applyFilters() {
+    const search = (searchInput.value || '').toLowerCase();
+    const severity = severitySelect.value;
+    const type = typeSelect.value;
+    rows.forEach(row => {
+      const text = row.innerText.toLowerCase();
+      const rowSeverity = row.children[1]?.innerText || '';
+      const rowType = row.children[2]?.innerText || '';
+      const matches = (!search || text.includes(search)) &&
+        (!severity || rowSeverity === severity) &&
+        (!type || rowType === type);
+      row.style.display = matches ? '' : 'none';
+    });
+  }
+
+  searchInput.addEventListener('input', applyFilters);
+  severitySelect.addEventListener('change', applyFilters);
+  typeSelect.addEventListener('change', applyFilters);
+}
+
+function setupMappingTable() {
+  const table = document.querySelector('.mapping-table');
+  if (!table) return;
+  const tbody = table.querySelector('tbody');
+
+  document.querySelectorAll('[data-action="add-row"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><input type="text" name="field_name" /></td>
+        <td><input type="text" name="left_column" /></td>
+        <td><input type="text" name="right_column" /></td>
+        <td><input type="checkbox" name="skip" value="custom" /></td>
+        <td><input type="text" name="normalize" placeholder="trim, upper" /></td>
+        <td><textarea name="value_map"></textarea></td>
+        <td class="confidence"></td>
+        <td class="reason"></td>
+        <td><button type="button" data-action="remove-row">Remove</button></td>
+      `;
+      tbody.appendChild(row);
+      attachRemove(row);
+    });
+  });
+
+  function attachRemove(row) {
+    const btn = row.querySelector('[data-action="remove-row"]');
+    if (btn) {
+      btn.addEventListener('click', () => row.remove());
+    }
+  }
+
+  tbody.querySelectorAll('tr').forEach(attachRemove);
+
+  const autoBtn = document.querySelector('[data-action="auto-guess"]');
+  if (autoBtn) {
+    autoBtn.addEventListener('click', async () => {
+      const leftPath = autoBtn.getAttribute('data-left');
+      const rightPath = autoBtn.getAttribute('data-right');
+      const response = await fetch(`/mapping/guess?left_path=${encodeURIComponent(leftPath)}&right_path=${encodeURIComponent(rightPath)}`);
+      if (!response.ok) return;
+      const data = await response.json();
+      data.forEach(item => {
+        const row = tbody.querySelector(`tr[data-left="${item.left_column}"]`);
+        if (!row) return;
+        const rightSelect = row.querySelector('select[name="right_column"]');
+        if (rightSelect) {
+          rightSelect.value = item.best_right;
+        }
+        row.querySelector('.confidence').textContent = item.confidence;
+        row.querySelector('.reason').textContent = item.reasons.join(', ');
+      });
+    });
+  }
+}
+
+function setupCopyYaml() {
+  const btn = document.querySelector('[data-action="copy-yaml"]');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const textarea = document.querySelector('.yaml-view');
+    if (!textarea) return;
+    navigator.clipboard.writeText(textarea.value);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupIssueFilters();
+  setupMappingTable();
+  setupCopyYaml();
+});
