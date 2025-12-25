@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h2>Run {{ run_id }}</h2>
+  <ul>
+    <li>Mode: {{ report.mode }}</li>
+    <li>Rows Left: {{ report.rows_left }}</li>
+    <li>Rows Right: {{ report.rows_right }}</li>
+    <li>Errors: {{ report.errors }}</li>
+    <li>Warnings: {{ report.warnings }}</li>
+  </ul>
+  <div class="actions">
+    <a class="button" href="/runs/{{ run_id }}/issues">View Issues</a>
+    <a class="button" href="/download/{{ run_id }}/issues.csv">Download issues.csv</a>
+    <a class="button" href="/download/{{ run_id }}/report.html">Open report.html</a>
+    <a class="button" href="/download/{{ run_id }}/bad_rows.csv">Download bad rows</a>
+    <a class="button" href="/download/{{ run_id }}/bad_rows_left.csv">Download bad rows left</a>
+    <a class="button" href="/download/{{ run_id }}/bad_rows_right.csv">Download bad rows right</a>
+  </div>
+</section>
+
+<section class="card">
+  <h3>First 500 Issues</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Run</th><th>Severity</th><th>Type</th><th>Side</th><th>Key</th><th>Row</th><th>Column</th><th>Left</th><th>Right</th><th>Message</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in issues %}
+      <tr>
+        {% for cell in row %}
+        <td>{{ cell }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

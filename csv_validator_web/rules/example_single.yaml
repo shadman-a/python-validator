@@ -1,0 +1,20 @@
+mode: single
+name: Example single rules
+
+validators:
+  - type: required_columns
+    severity: ERROR
+    columns: [id, email]
+
+  - type: required_non_null
+    severity: WARN
+    columns: [email]
+
+  - type: regex
+    severity: WARN
+    column: email
+    pattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"
+
+  - type: unique_key
+    severity: ERROR
+    key: id

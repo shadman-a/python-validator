@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <h2>Issues for {{ run_id }}</h2>
+  <div class="filters">
+    <input type="text" id="issue-search" placeholder="Search..." />
+    <select id="issue-severity">
+      <option value="">All severities</option>
+      <option value="INFO">INFO</option>
+      <option value="WARN">WARN</option>
+      <option value="ERROR">ERROR</option>
+    </select>
+    <select id="issue-type">
+      <option value="">All types</option>
+    </select>
+  </div>
+  <table id="issues-table">
+    <thead>
+      <tr>
+        <th>Run</th><th>Severity</th><th>Type</th><th>Side</th><th>Key</th><th>Row</th><th>Column</th><th>Left</th><th>Right</th><th>Message</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in issues %}
+      <tr>
+        {% for cell in row %}
+        <td>{{ cell }}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
