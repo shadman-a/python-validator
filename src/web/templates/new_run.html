@@ -2,61 +2,98 @@
 {% block content %}
 <section class="card">
   <h2>New Run</h2>
+  <p class="muted">Drop CSVs below or choose files. You can also paste a server path if the files already live here.</p>
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
-  <form method="post" enctype="multipart/form-data">
-    <label>Mode
-      <select name="mode">
-        <option value="single">Single CSV</option>
-        <option value="compare">Compare CSVs</option>
-      </select>
-    </label>
-
-    <label>Rules file
-      <select name="rule_file">
-        {% for rule in rules %}
-        <option value="{{ rule }}">{{ rule }}</option>
-        {% endfor %}
-      </select>
-    </label>
-
-    <div class="form-grid">
-      <div>
-        <label>Left CSV path
-          <input type="text" name="left_path" placeholder="/path/to/left.csv" />
+  <form method="post" enctype="multipart/form-data" data-new-run>
+    <div class="form-section">
+      <h3>1) Choose a mode</h3>
+      <div class="option-grid">
+        <label class="option-card">
+          <input type="radio" name="mode" value="single" checked />
+          <div>
+            <strong>Single CSV</strong>
+            <span class="muted">Validate one file against a rule set.</span>
+          </div>
         </label>
-        <label>Upload left CSV
-          <input type="file" name="left_upload" />
-        </label>
-      </div>
-      <div>
-        <label>Right CSV path
-          <input type="text" name="right_path" placeholder="/path/to/right.csv" />
-        </label>
-        <label>Upload right CSV
-          <input type="file" name="right_upload" />
+        <label class="option-card">
+          <input type="radio" name="mode" value="compare" />
+          <div>
+            <strong>Compare CSVs</strong>
+            <span class="muted">Compare two files and optionally map fields.</span>
+          </div>
         </label>
       </div>
     </div>
 
-    <fieldset>
-      <legend>Compare mode options</legend>
-      <label>
-        <input type="radio" name="mapping_choice" value="create" checked /> Create new mapping
-      </label>
-      <label>
-        <input type="radio" name="mapping_choice" value="existing" /> Use existing mapping
-      </label>
-      <label>Mapping file
-        <select name="mapping_file">
-          <option value="">Select mapping</option>
-          {% for mapping in mappings %}
-          <option value="{{ mapping }}">{{ mapping }}</option>
+    <div class="form-section">
+      <h3>2) Rules</h3>
+      <label>Rules file
+        <select name="rule_file">
+          {% for rule in rules %}
+          <option value="{{ rule }}">{{ rule }}</option>
           {% endfor %}
         </select>
       </label>
-    </fieldset>
+    </div>
 
-    <button class="button" type="submit">Continue</button>
+    <div class="form-section">
+      <h3>3) CSV files</h3>
+      <div class="form-grid">
+        <div>
+          <h4>Left CSV</h4>
+          <div class="dropzone" data-dropzone>
+            <input class="file-input" type="file" name="left_upload" accept=".csv,text/csv" />
+            <div class="dropzone-content">
+              <strong>Drag & drop CSV</strong>
+              <span class="muted">or</span>
+              <button type="button" class="button" data-dropzone-button>Choose file</button>
+            </div>
+            <span class="file-name" data-file-name>No file selected</span>
+          </div>
+          <label class="helper">Server path (optional)
+            <input type="text" name="left_path" placeholder="/path/to/left.csv" />
+          </label>
+        </div>
+        <div data-right-pane data-compare-only>
+          <h4>Right CSV</h4>
+          <div class="dropzone" data-dropzone>
+            <input class="file-input" type="file" name="right_upload" accept=".csv,text/csv" />
+            <div class="dropzone-content">
+              <strong>Drag & drop CSV</strong>
+              <span class="muted">or</span>
+              <button type="button" class="button" data-dropzone-button>Choose file</button>
+            </div>
+            <span class="file-name" data-file-name>No file selected</span>
+          </div>
+          <label class="helper">Server path (optional)
+            <input type="text" name="right_path" placeholder="/path/to/right.csv" />
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section" data-compare-only>
+      <h3>4) Mapping</h3>
+      <fieldset class="compact" data-mapping-choice>
+        <legend>Compare mode options</legend>
+        <label>
+          <input type="radio" name="mapping_choice" value="create" checked /> Create new mapping
+        </label>
+        <label>
+          <input type="radio" name="mapping_choice" value="existing" /> Use existing mapping
+        </label>
+        <label data-mapping-select class="helper">Mapping file
+          <select name="mapping_file">
+            <option value="">Select mapping</option>
+            {% for mapping in mappings %}
+            <option value="{{ mapping }}">{{ mapping }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </fieldset>
+    </div>
+
+    <button class="button primary" type="submit">Continue</button>
   </form>
 </section>
 {% endblock %}
