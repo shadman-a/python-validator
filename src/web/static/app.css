@@ -107,3 +107,84 @@ textarea {
   width: 100%;
   min-height: 200px;
 }
+
+.muted {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.form-section {
+  margin-bottom: 20px;
+}
+
+.option-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.option-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.option-card input {
+  margin-top: 4px;
+}
+
+.dropzone {
+  border: 2px dashed #cbd5f5;
+  border-radius: 10px;
+  padding: 16px;
+  background: #f8fafc;
+  text-align: center;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.dropzone.dragover {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.dropzone-content {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-name {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.helper {
+  font-size: 0.9rem;
+}
+
+.helper input,
+.helper select {
+  margin-top: 4px;
+}
+
+fieldset.compact {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+fieldset.compact label {
+  margin: 6px 0;
+}

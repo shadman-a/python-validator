@@ -102,8 +102,102 @@ function setupCopyYaml() {
   });
 }
 
+function setupNewRunForm() {
+  const form = document.querySelector('[data-new-run]');
+  if (!form) return;
+
+  const modeInputs = Array.from(form.querySelectorAll('input[name="mode"]'));
+  const mappingInputs = Array.from(form.querySelectorAll('input[name="mapping_choice"]'));
+  const compareOnlyEls = Array.from(form.querySelectorAll('[data-compare-only]'));
+  const mappingSelectWrapper = form.querySelector('[data-mapping-select]');
+  const mappingSelect = form.querySelector('select[name="mapping_file"]');
+
+  function getCheckedValue(inputs) {
+    return (inputs.find(input => input.checked) || {}).value;
+  }
+
+  function toggleCompareMode() {
+    const mode = getCheckedValue(modeInputs);
+    const showCompare = mode === 'compare';
+    compareOnlyEls.forEach(el => {
+      el.style.display = showCompare ? '' : 'none';
+    });
+    if (!showCompare && mappingSelect) {
+      mappingSelect.value = '';
+    }
+  }
+
+  function toggleMappingSelect() {
+    const choice = getCheckedValue(mappingInputs);
+    const showSelect = choice === 'existing';
+    if (mappingSelectWrapper) {
+      mappingSelectWrapper.style.display = showSelect ? '' : 'none';
+    }
+    if (!showSelect && mappingSelect) {
+      mappingSelect.value = '';
+    }
+  }
+
+  modeInputs.forEach(input => input.addEventListener('change', () => {
+    toggleCompareMode();
+    toggleMappingSelect();
+  }));
+  mappingInputs.forEach(input => input.addEventListener('change', toggleMappingSelect));
+
+  toggleCompareMode();
+  toggleMappingSelect();
+
+  form.querySelectorAll('[data-dropzone]').forEach(dropzone => {
+    const input = dropzone.querySelector('input[type="file"]');
+    const nameLabel = dropzone.querySelector('[data-file-name]');
+    const button = dropzone.querySelector('[data-dropzone-button]');
+
+    function updateNameLabel() {
+      if (!nameLabel) return;
+      const files = input.files;
+      nameLabel.textContent = files && files.length ? files[0].name : 'No file selected';
+    }
+
+    function openPicker() {
+      if (input) input.click();
+    }
+
+    dropzone.addEventListener('click', event => {
+      if (event.target.closest('[data-dropzone-button]')) return;
+      openPicker();
+    });
+
+    if (button) {
+      button.addEventListener('click', openPicker);
+    }
+
+    dropzone.addEventListener('dragover', event => {
+      event.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+
+    dropzone.addEventListener('drop', event => {
+      event.preventDefault();
+      dropzone.classList.remove('dragover');
+      const files = event.dataTransfer.files;
+      if (!files || !files.length || !input) return;
+      input.files = files;
+      updateNameLabel();
+    });
+
+    if (input) {
+      input.addEventListener('change', updateNameLabel);
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   setupIssueFilters();
   setupMappingTable();
   setupCopyYaml();
+  setupNewRunForm();
 });
