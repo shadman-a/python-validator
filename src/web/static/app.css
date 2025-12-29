@@ -93,6 +93,105 @@ textarea {
   width: 100%;
 }
 
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.page-header h2 {
+  margin-bottom: 4px;
+}
+
+.file-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pill {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.section-header h3 {
+  margin: 0;
+}
+
+.section-description {
+  margin: 4px 0 0;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.mapping-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.field-count {
+  align-self: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #1e293b;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.table-help {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.mapping-table .row-index {
+  width: 36px;
+  text-align: center;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.mapping-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.mapping-table textarea {
+  min-height: 48px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  justify-content: flex-end;
+}
+
 .filters {
   display: flex;
   gap: 8px;

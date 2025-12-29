@@ -41,11 +41,27 @@ function setupMappingTable() {
   const table = document.querySelector('.mapping-table');
   if (!table) return;
   const tbody = table.querySelector('tbody');
+  const tableWrapper = table.closest('.form-section');
+  const rowCountLabel = tableWrapper?.querySelector('[data-row-count]');
+
+  function updateRowNumbers() {
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    rows.forEach((row, index) => {
+      const cell = row.querySelector('.row-index');
+      if (cell) {
+        cell.textContent = String(index + 1);
+      }
+    });
+    if (rowCountLabel) {
+      rowCountLabel.textContent = rows.length ? `${rows.length} fields` : 'No fields yet';
+    }
+  }
 
   document.querySelectorAll('[data-action="add-row"]').forEach(btn => {
     btn.addEventListener('click', () => {
       const row = document.createElement('tr');
       row.innerHTML = `
+        <td class="row-index"></td>
         <td><input type="text" name="field_name" /></td>
         <td><input type="text" name="left_column" /></td>
         <td><input type="text" name="right_column" /></td>
@@ -58,17 +74,22 @@ function setupMappingTable() {
       `;
       tbody.appendChild(row);
       attachRemove(row);
+      updateRowNumbers();
     });
   });
 
   function attachRemove(row) {
     const btn = row.querySelector('[data-action="remove-row"]');
     if (btn) {
-      btn.addEventListener('click', () => row.remove());
+      btn.addEventListener('click', () => {
+        row.remove();
+        updateRowNumbers();
+      });
     }
   }
 
   tbody.querySelectorAll('tr').forEach(attachRemove);
+  updateRowNumbers();
 
   const autoBtn = document.querySelector('[data-action="auto-guess"]');
   if (autoBtn) {
