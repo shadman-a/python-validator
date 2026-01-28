@@ -189,6 +189,12 @@ function setupNewRunForm() {
     return (inputs.find(input => input.checked) || {}).value;
   }
 
+  function getMode() {
+    const checked = getCheckedValue(modeInputs);
+    if (checked) return checked;
+    return modeInputs.length ? 'single' : 'compare';
+  }
+
   function normalizeHeader(value) {
     return (value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   }
@@ -308,7 +314,7 @@ function setupNewRunForm() {
 
   function updateSubmitLabel() {
     if (!submitLabel) return;
-    const mode = getCheckedValue(modeInputs);
+    const mode = getMode();
     if (mode === 'compare') {
       const choice = getCheckedValue(mappingInputs);
       if (choice === 'create') {
@@ -322,7 +328,7 @@ function setupNewRunForm() {
   }
 
   function updateSummary() {
-    const mode = getCheckedValue(modeInputs) || 'single';
+    const mode = getMode();
     if (summaryMode) {
       summaryMode.textContent = mode === 'compare' ? 'Compare CSVs' : 'Single CSV';
     }
@@ -421,7 +427,7 @@ function setupNewRunForm() {
   }
 
   async function refreshRecommendations() {
-    if (getCheckedValue(modeInputs) !== 'compare') {
+    if (getMode() !== 'compare') {
       return;
     }
     const token = recToken + 1;
@@ -462,7 +468,7 @@ function setupNewRunForm() {
   }
 
   function toggleCompareMode() {
-    const mode = getCheckedValue(modeInputs);
+    const mode = getMode();
     const showCompare = mode === 'compare';
     compareOnlyEls.forEach(el => {
       el.style.display = showCompare ? '' : 'none';
@@ -489,7 +495,7 @@ function setupNewRunForm() {
   }
 
   function getVisibleSteps() {
-    const mode = getCheckedValue(modeInputs);
+    const mode = getMode();
     return stepEls.filter(step => {
       if (step.dataset.compareOnly !== undefined) {
         return mode === 'compare';

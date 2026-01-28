@@ -159,6 +159,18 @@ def create_app() -> FastAPI:
 
         rules = load_rules(RULES_DIR / rule_file)
 
+        if mode == "compare" and mapping_choice == "existing" and not mapping_file:
+            return templates.TemplateResponse(
+                "new_run.html",
+                {
+                    "request": request,
+                    "rules": _list_rules(),
+                    "mappings": _list_mappings(),
+                    "mapping_summaries": _mapping_summaries(),
+                    "error": "Select a mapping file or choose to create a new mapping.",
+                },
+            )
+
         if mode == "compare" and mapping_choice == "existing" and mapping_file:
             mapping = load_mapping(MAPPINGS_DIR / mapping_file)
             result = run_validation(mode, left, right, rules, mapping, RUNS_DIR)
@@ -385,14 +397,3 @@ def run(host: str, port: int, open_browser: bool = True) -> None:
     if open_browser:
         webbrowser.open(f"http://{host}:{port}")
     uvicorn.run(app, host=host, port=port)
-        if mode == "compare" and mapping_choice == "existing" and not mapping_file:
-            return templates.TemplateResponse(
-                "new_run.html",
-                {
-                    "request": request,
-                    "rules": _list_rules(),
-                    "mappings": _list_mappings(),
-                    "mapping_summaries": _mapping_summaries(),
-                    "error": "Select a mapping file or choose to create a new mapping.",
-                },
-            )

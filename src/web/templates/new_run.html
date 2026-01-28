@@ -9,7 +9,6 @@
     <div class="wizard-progress">
       <div class="progress-track"><span class="progress-bar" data-progress-bar></span></div>
       <ol class="stepper">
-        <li data-step-label data-step-id="mode">Mode</li>
         <li data-step-label data-step-id="rules">Rules</li>
         <li data-step-label data-step-id="files">Files</li>
         <li data-step-label data-step-id="mapping" data-compare-only>Mapping</li>
@@ -23,35 +22,10 @@
   </div>
   {% endif %}
   <form method="post" enctype="multipart/form-data" data-new-run>
-    <section class="wizard-step is-active" data-step="mode">
+    <input type="hidden" name="mode" value="compare" />
+    <section class="wizard-step is-active" data-step="rules">
       <div class="step-header">
-        <h3>1) Choose a mode</h3>
-        <p class="muted">Pick how you want to validate data today.</p>
-      </div>
-      <div class="option-grid">
-        <label class="option-card">
-          <input type="radio" name="mode" value="single" checked />
-          <div class="option-content">
-            <strong>Single CSV</strong>
-            <span class="muted">Validate one file against a rule set.</span>
-          </div>
-        </label>
-        <label class="option-card">
-          <input type="radio" name="mode" value="compare" />
-          <div class="option-content">
-            <strong>Compare CSVs</strong>
-            <span class="muted">Compare two files and map fields when needed.</span>
-          </div>
-        </label>
-      </div>
-      <div class="step-actions">
-        <button class="button primary" type="button" data-step-next>Next</button>
-      </div>
-    </section>
-
-    <section class="wizard-step" data-step="rules">
-      <div class="step-header">
-        <h3>2) Select rules</h3>
+        <h3>1) Select rules</h3>
         <p class="muted">Rules define what gets validated (required fields, ranges, comparisons).</p>
       </div>
       <label>Rules file
@@ -62,14 +36,13 @@
         </select>
       </label>
       <div class="step-actions">
-        <button class="button" type="button" data-step-prev>Back</button>
         <button class="button primary" type="button" data-step-next>Next</button>
       </div>
     </section>
 
     <section class="wizard-step" data-step="files">
       <div class="step-header">
-        <h3>3) Add CSV files</h3>
+        <h3>2) Add CSV files</h3>
         <p class="muted">Upload files or paste server paths. We only need the headers for recommendations.</p>
       </div>
       <div class="form-grid">
@@ -112,7 +85,7 @@
 
     <section class="wizard-step" data-step="mapping" data-compare-only>
       <div class="step-header">
-        <h3>4) Mapping</h3>
+        <h3>3) Mapping</h3>
         <p class="muted">We will recommend existing mappings based on your headers.</p>
       </div>
       <div class="mapping-grid">
@@ -159,13 +132,13 @@
 
     <section class="wizard-step" data-step="review">
       <div class="step-header">
-        <h3>5) Review & run</h3>
+        <h3>4) Review & run</h3>
         <p class="muted">Double-check the configuration before starting.</p>
       </div>
       <div class="review-grid">
         <div class="review-card">
           <h4>Mode</h4>
-          <p data-summary-mode>Single CSV</p>
+          <p data-summary-mode>Compare CSVs</p>
         </div>
         <div class="review-card">
           <h4>Rules</h4>
