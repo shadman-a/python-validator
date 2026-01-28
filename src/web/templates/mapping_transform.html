@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <div class="page-header">
+    <div>
+      <h2>Mapping Builder</h2>
+      <p class="muted">Step 2 of 2: add transformations and value maps based on the matched columns.</p>
+    </div>
+    {% if left_path or right_path %}
+    <div class="file-summary">
+      {% if left_path %}<div class="pill"><strong>Left:</strong> {{ left_path }}</div>{% endif %}
+      {% if right_path %}<div class="pill"><strong>Right:</strong> {{ right_path }}</div>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+  <form method="post" action="/mapping/save">
+    <input type="hidden" name="left_path" value="{{ left_path }}" />
+    <input type="hidden" name="right_path" value="{{ right_path }}" />
+    {% if rule_file %}<input type="hidden" name="rule_file" value="{{ rule_file }}" />{% endif %}
+
+    <div class="form-section">
+      <div class="section-header">
+        <div>
+          <h3>1. Mapping details</h3>
+          <p class="section-description">Review the mapping name and keys. Use the column mapping page to change matched columns.</p>
+        </div>
+      </div>
+      <label>Mapping name
+        <input type="text" name="mapping_name" value="{{ mapping_name }}" placeholder="customer_account_mapping" required />
+        <span class="field-hint">Shown in the mapping list and used in runs.</span>
+      </label>
+
+      <div class="form-grid">
+        <label>Left Key
+          <input type="text" name="left_key" value="{{ (mapping.get('keys', {}) if mapping else {}).get('left', '') }}" readonly />
+          <span class="field-hint">Change on the column mapping page.</span>
+        </label>
+        <label>Right Key
+          <input type="text" name="right_key" value="{{ (mapping.get('keys', {}) if mapping else {}).get('right', '') }}" readonly />
+          <span class="field-hint">Change on the column mapping page.</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-header">
+        <div>
+          <h3>2. Transformations & value maps</h3>
+          <p class="section-description">Recommendations are based on sample values from both files. You can edit any field.</p>
+        </div>
+        <div class="mapping-actions">
+          <span class="field-count" data-row-count></span>
+          {% if mapping_yaml %}
+          <a class="button" href="/mapping/edit/{{ mapping_name }}.yaml">Edit columns</a>
+          {% else %}
+          <button class="button" type="button" onclick="history.back()">Back to columns</button>
+          {% endif %}
+        </div>
+      </div>
+      <p class="table-help">Normalize supports comma-separated steps like <code>trim, upper</code>. Value maps accept JSON (ex: <code>{"Y": "Yes", "N": "No"}</code>).</p>
+
+      <div class="table-wrap">
+        <table class="mapping-table" data-mapping-mode="transform">
+          <thead>
+            <tr>
+              <th class="row-index">#</th>
+              <th>Logical Field</th>
+              <th>Left Column</th>
+              <th>Right Column</th>
+              <th>Normalize</th>
+              <th>Value Map (JSON)</th>
+              <th>Recommendations</th>
+            </tr>
+          </thead>
+          <tbody>
+        {% if mapping %}
+          {% for field, config in (mapping.get('fields', {}) if mapping else {}).items() %}
+          <tr>
+            <td class="row-index"></td>
+            <td>
+              <strong>{{ field }}</strong>
+              <input type="hidden" name="field_name" value="{{ field }}" />
+              {% if config.skip %}
+              <input type="hidden" name="skip" value="{{ loop.index0 }}" />
+              {% endif %}
+            </td>
+            <td>
+              {{ config.left }}
+              <input type="hidden" name="left_column" value="{{ config.left }}" />
+            </td>
+            <td>
+              {{ config.right }}
+              <input type="hidden" name="right_column" value="{{ config.right }}" />
+            </td>
+            <td>
+              <input type="text" name="normalize" value="{{ config.normalize_display | join(', ') }}" placeholder="trim, upper" {% if config.normalize_suggested %}data-suggested="true"{% endif %} />
+            </td>
+            <td>
+              <textarea name="value_map" placeholder='{"Y": "Yes"}' {% if config.value_map_suggested %}data-suggested="true"{% endif %}>{{ config.value_map_display | tojson if config.value_map_display is not none else '' }}</textarea>
+            </td>
+            <td class="recommendation">
+              {% if config.suggestion %}
+                {% if config.suggestion.normalize %}
+                  <div><strong>Normalize:</strong> {{ config.suggestion.normalize | join(', ') }}</div>
+                {% endif %}
+                {% if config.suggestion.value_map %}
+                  <div><strong>Value map:</strong> {{ config.suggestion.value_map | tojson }}</div>
+                {% endif %}
+                {% if config.suggestion.reasons %}
+                  <div class="muted">Why: {{ config.suggestion.reasons | join('; ') }}</div>
+                {% endif %}
+              {% else %}
+                <span class="muted">No suggestions</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="button" type="submit" name="action" value="save">Save Mapping</button>
+      {% if left_path and right_path %}
+      <button class="button primary" type="submit" name="action" value="save_and_run">Save and Start Run</button>
+      {% endif %}
+    </div>
+  </form>
+
+  {% if mapping_yaml %}
+  <section class="card">
+    <h3>Mapping YAML</h3>
+    <textarea class="yaml-view" readonly>{{ mapping_yaml }}</textarea>
+    <button class="button" data-action="copy-yaml" type="button">Copy mapping YAML</button>
+    <a class="button" href="/mappings/download/{{ mapping_name }}.yaml">Download mapping YAML</a>
+  </section>
+  {% endif %}
+</section>
+{% endblock %}

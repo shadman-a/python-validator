@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="card">
+  <div class="page-header">
+    <div>
+      <h2>Mapping Builder</h2>
+      <p class="muted">Step 1 of 2: match logical fields to left/right columns. Next you'll add transforms and value maps.</p>
+    </div>
+    {% if left_path or right_path %}
+    <div class="file-summary">
+      {% if left_path %}<div class="pill"><strong>Left:</strong> {{ left_path }}</div>{% endif %}
+      {% if right_path %}<div class="pill"><strong>Right:</strong> {{ right_path }}</div>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+  <form method="post" action="/mapping/transform">
+    <input type="hidden" name="left_path" value="{{ left_path }}" />
+    <input type="hidden" name="right_path" value="{{ right_path }}" />
+    {% if rule_file %}<input type="hidden" name="rule_file" value="{{ rule_file }}" />{% endif %}
+
+    <div class="form-section">
+      <div class="section-header">
+        <div>
+          <h3>1. Name and keys</h3>
+          <p class="section-description">Keys identify a unique record on each side. The name is how you will select this mapping later.</p>
+        </div>
+      </div>
+      <label>Mapping name
+        <input type="text" name="mapping_name" value="{{ mapping_name }}" placeholder="customer_account_mapping" required />
+        <span class="field-hint">Shown in the mapping list and used in runs.</span>
+      </label>
+
+      <div class="form-grid">
+        <label>Left Key
+          <input type="text" name="left_key" value="{{ (mapping.get('keys', {}) if mapping else {}).get('left', '') }}" placeholder="account_id" required />
+          <span class="field-hint">Primary identifier in the left CSV.</span>
+        </label>
+        <label>Right Key
+          <input type="text" name="right_key" value="{{ (mapping.get('keys', {}) if mapping else {}).get('right', '') }}" placeholder="acct_id" required />
+          <span class="field-hint">Primary identifier in the right CSV.</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="section-header">
+        <div>
+          <h3>2. Column mappings</h3>
+          <p class="section-description">Align the logical field name with the matching left/right columns. Skip fields you do not want to compare.</p>
+        </div>
+        <div class="mapping-actions">
+          <span class="field-count" data-row-count></span>
+          {% if left_columns %}
+            <button class="button" type="button" data-action="auto-guess" data-left="{{ left_path }}" data-right="{{ right_path }}">Auto-guess columns</button>
+          {% endif %}
+          <button class="button" type="button" data-action="add-row">Add row</button>
+        </div>
+      </div>
+      <p class="table-help">Match your columns now. You can add normalization steps and value maps on the next page.</p>
+
+      <div class="table-wrap">
+        <table class="mapping-table" data-has-columns="{{ 'true' if left_columns else 'false' }}" data-mapping-mode="columns">
+          <thead>
+            <tr>
+              <th class="row-index">#</th>
+              <th>Logical Field</th>
+              <th>Left Column</th>
+              <th>Right Column</th>
+              <th>Skip</th>
+              <th>Confidence</th>
+              <th>Reason</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+        {% if mapping %}
+          {% for field, config in (mapping.get('fields', {}) if mapping else {}).items() %}
+          <tr>
+            <td class="row-index"></td>
+            <td><input type="text" name="field_name" value="{{ field }}" placeholder="logical_field" /></td>
+            <td><input type="text" name="left_column" value="{{ config.left }}" placeholder="left_column" /></td>
+            <td><input type="text" name="right_column" value="{{ config.right }}" placeholder="right_column" /></td>
+            <td><input type="checkbox" name="skip" value="{{ loop.index0 }}" {% if config.skip %}checked{% endif %} /></td>
+            <td class="confidence"></td>
+            <td class="reason"></td>
+            <td>
+              <button type="button" data-action="remove-row">Remove</button>
+              <input type="hidden" name="normalize" value="{{ config.normalize | join(', ') if config.normalize is defined else '' }}" />
+              <input type="hidden" name="value_map" value='{{ config.value_map | tojson if config.value_map is defined else "" }}' />
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          {% for suggestion in suggestions %}
+          <tr data-left="{{ suggestion.left_column }}">
+            <td class="row-index"></td>
+            <td><input type="text" name="field_name" value="{{ suggestion.left_column|lower|replace(' ', '_') }}" /></td>
+            <td>
+              <select name="left_column">
+                {% for col in left_columns %}
+                <option value="{{ col }}" {% if col == suggestion.left_column %}selected{% endif %}>{{ col }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td>
+              <select name="right_column">
+                {% for col in right_columns %}
+                <option value="{{ col }}" {% if col == suggestion.best_right %}selected{% endif %}>{{ col }}</option>
+                {% endfor %}
+              </select>
+            </td>
+            <td><input type="checkbox" name="skip" value="{{ loop.index0 }}" /></td>
+            <td class="confidence" data-confidence="{{ suggestion.confidence }}">{{ suggestion.confidence }}%</td>
+            <td class="reason">{{ suggestion.reasons | join(', ') }}</td>
+            <td>
+              <button type="button" data-action="remove-row">Remove</button>
+              <input type="hidden" name="normalize" value="" />
+              <input type="hidden" name="value_map" value="" />
+            </td>
+          </tr>
+          {% endfor %}
+        {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="button primary" type="submit">Continue to transformations</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

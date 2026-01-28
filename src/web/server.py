@@ -19,6 +19,7 @@ from ..core.mapping_guess import guess_mappings
 from ..core.mapping_store import load_mapping, save_mapping
 from ..core.rules_loader import load_rules
 from ..core.runner import run_validation
+from ..core.transform_guess import guess_transformations
 from ..core.utils import ensure_dir, format_timestamp, human_bool, is_subpath, sanitize_filename
 
 BASE_DIR = Path(__file__).resolve().parents[2]
@@ -102,6 +103,33 @@ def create_app() -> FastAPI:
         with path.open("wb") as handle:
             handle.write(upload.file.read())
         return path
+
+    def _decorate_mapping_fields(
+        fields: dict[str, dict[str, Any]],
+        suggestions: dict[str, dict] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        suggestions = suggestions or {}
+        decorated: dict[str, dict[str, Any]] = {}
+        for field, config in fields.items():
+            display = dict(config)
+            suggestion = suggestions.get(field, {}) if suggestions else {}
+            normalize_display = display.get("normalize", []) or []
+            value_map_display = display.get("value_map")
+            normalize_suggested = False
+            value_map_suggested = False
+            if not normalize_display and suggestion.get("normalize"):
+                normalize_display = suggestion.get("normalize", [])
+                normalize_suggested = True
+            if value_map_display is None and suggestion.get("value_map"):
+                value_map_display = suggestion.get("value_map")
+                value_map_suggested = True
+            display["normalize_display"] = normalize_display
+            display["value_map_display"] = value_map_display
+            display["normalize_suggested"] = normalize_suggested
+            display["value_map_suggested"] = value_map_suggested
+            display["suggestion"] = suggestion
+            decorated[field] = display
+        return decorated
 
     @app.get("/", response_class=HTMLResponse)
     async def home(request: Request):
@@ -198,7 +226,7 @@ def create_app() -> FastAPI:
         right_samples = sample_values(right_df)
         suggestions = guess_mappings(left_df.columns, right_df.columns, left_samples, right_samples)
         return templates.TemplateResponse(
-            "mapping.html",
+            "mapping_columns.html",
             {
                 "request": request,
                 "left_path": str(left),
@@ -216,7 +244,7 @@ def create_app() -> FastAPI:
     async def mapping_edit(request: Request, mapping_name: str):
         mapping = load_mapping(MAPPINGS_DIR / mapping_name)
         return templates.TemplateResponse(
-            "mapping.html",
+            "mapping_columns.html",
             {
                 "request": request,
                 "left_path": "",
@@ -226,6 +254,90 @@ def create_app() -> FastAPI:
                 "suggestions": [],
                 "mapping": mapping,
                 "mapping_name": mapping_name.replace(".yaml", ""),
+                "rule_file": None,
+                "mapping_yaml": yaml.safe_dump(mapping, sort_keys=False),
+            },
+        )
+
+    @app.post("/mapping/transform", response_class=HTMLResponse)
+    async def mapping_transform(
+        request: Request,
+        mapping_name: str = Form(...),
+        left_path: str | None = Form(None),
+        right_path: str | None = Form(None),
+        left_key: str = Form(...),
+        right_key: str = Form(...),
+        rule_file: str | None = Form(None),
+        field_name: list[str] = Form(...),
+        left_column: list[str] = Form(...),
+        right_column: list[str] = Form(...),
+        skip: list[str] = Form([]),
+        normalize: list[str] = Form([]),
+        value_map: list[str] = Form([]),
+    ):
+        fields: dict[str, Any] = {}
+        for idx, name in enumerate(field_name):
+            if not name:
+                continue
+            value_map_data = None
+            if idx < len(value_map) and value_map[idx].strip():
+                try:
+                    value_map_data = json.loads(value_map[idx])
+                except json.JSONDecodeError:
+                    value_map_data = None
+            norm_steps = []
+            if idx < len(normalize) and normalize[idx].strip():
+                norm_steps = [step.strip() for step in normalize[idx].split(",") if step.strip()]
+            fields[name] = {
+                "left": left_column[idx] if idx < len(left_column) else "",
+                "right": right_column[idx] if idx < len(right_column) else "",
+                "skip": str(idx) in skip,
+            }
+            if norm_steps:
+                fields[name]["normalize"] = norm_steps
+            if value_map_data:
+                fields[name]["value_map"] = value_map_data
+
+        suggestions: dict[str, dict] = {}
+        if left_path and right_path:
+            left_df = read_csv(Path(left_path))
+            right_df = read_csv(Path(right_path))
+            suggestions = guess_transformations(fields, sample_values(left_df), sample_values(right_df))
+
+        mapping_view = {
+            "keys": {"left": left_key, "right": right_key},
+            "fields": _decorate_mapping_fields(fields, suggestions),
+        }
+
+        return templates.TemplateResponse(
+            "mapping_transform.html",
+            {
+                "request": request,
+                "left_path": left_path or "",
+                "right_path": right_path or "",
+                "mapping_name": mapping_name,
+                "mapping": mapping_view,
+                "rule_file": rule_file,
+            },
+        )
+
+    @app.get("/mapping/transform/{mapping_name}", response_class=HTMLResponse)
+    async def mapping_transform_edit(request: Request, mapping_name: str):
+        mapping = load_mapping(MAPPINGS_DIR / mapping_name)
+        fields = mapping.get("fields") if isinstance(mapping.get("fields"), dict) else {}
+        keys = mapping.get("keys") if isinstance(mapping.get("keys"), dict) else {}
+        mapping_view = {
+            "keys": keys,
+            "fields": _decorate_mapping_fields(fields),
+        }
+        return templates.TemplateResponse(
+            "mapping_transform.html",
+            {
+                "request": request,
+                "left_path": "",
+                "right_path": "",
+                "mapping_name": mapping_name.replace(".yaml", ""),
+                "mapping": mapping_view,
                 "rule_file": None,
                 "mapping_yaml": yaml.safe_dump(mapping, sort_keys=False),
             },
@@ -282,7 +394,7 @@ def create_app() -> FastAPI:
             result = run_validation("compare", Path(left_path), Path(right_path), rules, mapping_payload, RUNS_DIR)
             return RedirectResponse(url=f"/runs/{result.run_id}", status_code=302)
 
-        return RedirectResponse(url=f"/mapping/edit/{mapping_path.name}", status_code=302)
+        return RedirectResponse(url=f"/mapping/transform/{mapping_path.name}", status_code=302)
 
     @app.get("/mapping/guess")
     async def mapping_guess_endpoint(left_path: str, right_path: str):

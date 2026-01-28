@@ -65,6 +65,10 @@ function setupMappingTable() {
       if (cell) {
         cell.textContent = String(index + 1);
       }
+      const skipInput = row.querySelector('input[name="skip"]');
+      if (skipInput) {
+        skipInput.value = String(index);
+      }
     });
     if (rowCountLabel) {
       rowCountLabel.textContent = rows.length ? `${rows.length} fields` : 'No fields yet';
@@ -74,18 +78,36 @@ function setupMappingTable() {
   document.querySelectorAll('[data-action="add-row"]').forEach(btn => {
     btn.addEventListener('click', () => {
       const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="row-index"></td>
-        <td><input type="text" name="field_name" /></td>
-        <td><input type="text" name="left_column" /></td>
-        <td><input type="text" name="right_column" /></td>
-        <td><input type="checkbox" name="skip" value="custom" /></td>
-        <td><input type="text" name="normalize" placeholder="trim, upper" /></td>
-        <td><textarea name="value_map"></textarea></td>
-        <td class="confidence"></td>
-        <td class="reason"></td>
-        <td><button type="button" data-action="remove-row">Remove</button></td>
-      `;
+      const mode = table?.dataset?.mappingMode || 'full';
+      if (mode === 'columns') {
+        row.innerHTML = `
+          <td class="row-index"></td>
+          <td><input type="text" name="field_name" /></td>
+          <td><input type="text" name="left_column" /></td>
+          <td><input type="text" name="right_column" /></td>
+          <td><input type="checkbox" name="skip" /></td>
+          <td class="confidence"></td>
+          <td class="reason"></td>
+          <td>
+            <button type="button" data-action="remove-row">Remove</button>
+            <input type="hidden" name="normalize" value="" />
+            <input type="hidden" name="value_map" value="" />
+          </td>
+        `;
+      } else {
+        row.innerHTML = `
+          <td class="row-index"></td>
+          <td><input type="text" name="field_name" /></td>
+          <td><input type="text" name="left_column" /></td>
+          <td><input type="text" name="right_column" /></td>
+          <td><input type="checkbox" name="skip" /></td>
+          <td><input type="text" name="normalize" placeholder="trim, upper" /></td>
+          <td><textarea name="value_map"></textarea></td>
+          <td class="confidence"></td>
+          <td class="reason"></td>
+          <td><button type="button" data-action="remove-row">Remove</button></td>
+        `;
+      }
       tbody.appendChild(row);
       attachRemove(row);
       updateConfidenceCell(row.querySelector('.confidence'), '');
