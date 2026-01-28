@@ -58,22 +58,23 @@
       </div>
       <p class="table-help">Normalize supports comma-separated steps like <code>trim, upper</code>. Value maps accept JSON (ex: <code>{"Y": "Yes", "N": "No"}</code>).</p>
 
-      <table class="mapping-table" data-has-columns="{{ 'true' if left_columns else 'false' }}">
-        <thead>
-          <tr>
-            <th class="row-index">#</th>
-            <th>Logical Field</th>
-            <th>Left Column</th>
-            <th>Right Column</th>
-            <th>Skip</th>
-            <th>Normalize</th>
-            <th>Value Map (JSON)</th>
-            <th>Confidence</th>
-            <th>Reason</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
+      <div class="table-wrap">
+        <table class="mapping-table" data-has-columns="{{ 'true' if left_columns else 'false' }}">
+          <thead>
+            <tr>
+              <th class="row-index">#</th>
+              <th>Logical Field</th>
+              <th>Left Column</th>
+              <th>Right Column</th>
+              <th>Skip</th>
+              <th>Normalize</th>
+              <th>Value Map (JSON)</th>
+              <th>Confidence</th>
+              <th>Reason</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
         {% if mapping %}
           {% for field, config in mapping.fields.items() %}
           <tr>
@@ -111,14 +112,15 @@
             <td><input type="checkbox" name="skip" value="{{ loop.index0 }}" /></td>
             <td><input type="text" name="normalize" value="" placeholder="trim, upper" /></td>
             <td><textarea name="value_map" placeholder='{"Y": "Yes"}'></textarea></td>
-            <td class="confidence">{{ suggestion.confidence }}</td>
+            <td class="confidence" data-confidence="{{ suggestion.confidence }}">{{ suggestion.confidence }}%</td>
             <td class="reason">{{ suggestion.reasons | join(', ') }}</td>
             <td><button type="button" data-action="remove-row">Remove</button></td>
           </tr>
           {% endfor %}
         {% endif %}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <div class="actions">

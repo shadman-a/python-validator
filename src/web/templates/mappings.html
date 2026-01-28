@@ -3,23 +3,25 @@
 <section class="card">
   <h2>Mappings</h2>
   {% if mappings %}
-  <table>
-    <thead><tr><th>Name</th><th>Actions</th></tr></thead>
-    <tbody>
-      {% for mapping in mappings %}
-      <tr>
-        <td>{{ mapping }}</td>
-        <td>
-          <a class="button" href="/mapping/edit/{{ mapping }}">Edit</a>
-          <a class="button" href="/mappings/download/{{ mapping }}">Download</a>
-          <form method="post" action="/mappings/delete/{{ mapping }}" style="display:inline">
-            <button class="button danger" type="submit">Delete</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for mapping in mappings %}
+        <tr>
+          <td>{{ mapping }}</td>
+          <td>
+            <a class="button" href="/mapping/edit/{{ mapping }}">Edit</a>
+            <a class="button" href="/mappings/download/{{ mapping }}">Download</a>
+            <form method="post" action="/mappings/delete/{{ mapping }}" style="display:inline">
+              <button class="button danger" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% else %}
   <p>No mappings found.</p>
   {% endif %}

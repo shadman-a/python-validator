@@ -21,21 +21,23 @@
 
 <section class="card">
   <h3>First 500 Issues</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Run</th><th>Severity</th><th>Type</th><th>Side</th><th>Key</th><th>Row</th><th>Column</th><th>Left</th><th>Right</th><th>Message</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in issues %}
-      <tr>
-        {% for cell in row %}
-        <td>{{ cell }}</td>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Run</th><th>Severity</th><th>Type</th><th>Side</th><th>Key</th><th>Row</th><th>Column</th><th>Left</th><th>Right</th><th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in issues %}
+        <tr>
+          {% for cell in row %}
+          <td>{{ cell }}</td>
+          {% endfor %}
+        </tr>
         {% endfor %}
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </tbody>
+    </table>
+  </div>
 </section>
 {% endblock %}

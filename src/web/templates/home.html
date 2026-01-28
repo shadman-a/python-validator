@@ -13,22 +13,24 @@
 <section class="card">
   <h3>Recent Runs</h3>
   {% if runs %}
-  <table>
-    <thead>
-      <tr><th>Run</th><th>Mode</th><th>Rows</th><th>Errors</th><th>Warnings</th></tr>
-    </thead>
-    <tbody>
-    {% for run in runs %}
-      <tr>
-        <td><a href="/runs/{{ run.run_id }}">{{ run.run_id }}</a></td>
-        <td>{{ run.mode }}</td>
-        <td>{{ run.rows_left }}</td>
-        <td>{{ run.errors }}</td>
-        <td>{{ run.warnings }}</td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Run</th><th>Mode</th><th>Rows</th><th>Errors</th><th>Warnings</th></tr>
+      </thead>
+      <tbody>
+      {% for run in runs %}
+        <tr>
+          <td><a href="/runs/{{ run.run_id }}">{{ run.run_id }}</a></td>
+          <td>{{ run.mode }}</td>
+          <td>{{ run.rows_left }}</td>
+          <td>{{ run.errors }}</td>
+          <td>{{ run.warnings }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
   {% else %}
   <p>No runs yet.</p>
   {% endif %}

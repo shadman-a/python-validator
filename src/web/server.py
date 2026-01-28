@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import yaml
 
-from ..core.io import read_csv, sample_values
+from ..core.io import read_csv, read_csv_columns, sample_values
 from ..core.mapping_guess import guess_mappings
 from ..core.mapping_store import load_mapping, save_mapping
 from ..core.rules_loader import load_rules
@@ -38,6 +38,39 @@ def create_app() -> FastAPI:
 
     def _list_mappings() -> list[str]:
         return sorted([p.name for p in MAPPINGS_DIR.glob("*.yaml")])
+
+    def _mapping_summaries() -> list[dict[str, Any]]:
+        summaries: list[dict[str, Any]] = []
+        for path in sorted(MAPPINGS_DIR.glob("*.yaml")):
+            data = load_mapping(path)
+            if not isinstance(data, dict):
+                continue
+            fields = data.get("fields") or {}
+            if not isinstance(fields, dict):
+                fields = {}
+            left_columns = []
+            right_columns = []
+            for config in fields.values():
+                if not isinstance(config, dict):
+                    continue
+                left = config.get("left")
+                right = config.get("right")
+                if left:
+                    left_columns.append(left)
+                if right:
+                    right_columns.append(right)
+            keys = data.get("keys") if isinstance(data.get("keys"), dict) else {}
+            summaries.append(
+                {
+                    "name": path.name,
+                    "left_columns": left_columns,
+                    "right_columns": right_columns,
+                    "left_key": (keys or {}).get("left", ""),
+                    "right_key": (keys or {}).get("right", ""),
+                    "field_count": len(fields),
+                }
+            )
+        return summaries
 
     def _list_runs() -> list[dict[str, Any]]:
         runs = []
@@ -78,6 +111,7 @@ def create_app() -> FastAPI:
                 "request": request,
                 "rules": _list_rules(),
                 "mappings": _list_mappings(),
+                "mapping_summaries": _mapping_summaries(),
             },
         )
 
@@ -107,6 +141,7 @@ def create_app() -> FastAPI:
                     "request": request,
                     "rules": _list_rules(),
                     "mappings": _list_mappings(),
+                    "mapping_summaries": _mapping_summaries(),
                     "error": "Left CSV path is required and must exist.",
                 },
             )
@@ -117,6 +152,7 @@ def create_app() -> FastAPI:
                     "request": request,
                     "rules": _list_rules(),
                     "mappings": _list_mappings(),
+                    "mapping_summaries": _mapping_summaries(),
                     "error": "Right CSV path is required for compare mode.",
                 },
             )
@@ -252,6 +288,27 @@ def create_app() -> FastAPI:
         ]
         return payload
 
+    @app.get("/files/columns")
+    async def files_columns(left_path: str | None = None, right_path: str | None = None):
+        payload: dict[str, Any] = {"left_columns": [], "right_columns": []}
+        if left_path:
+            left = Path(left_path)
+            if not left.exists():
+                return Response("Left path not found", status_code=404)
+            try:
+                payload["left_columns"] = read_csv_columns(left)
+            except Exception:
+                return Response("Unable to read left CSV", status_code=400)
+        if right_path:
+            right = Path(right_path)
+            if not right.exists():
+                return Response("Right path not found", status_code=404)
+            try:
+                payload["right_columns"] = read_csv_columns(right)
+            except Exception:
+                return Response("Unable to read right CSV", status_code=400)
+        return payload
+
     @app.get("/runs", response_class=HTMLResponse)
     async def runs(request: Request):
         return templates.TemplateResponse("runs.html", {"request": request, "runs": _list_runs()})
@@ -328,3 +385,14 @@ def run(host: str, port: int, open_browser: bool = True) -> None:
     if open_browser:
         webbrowser.open(f"http://{host}:{port}")
     uvicorn.run(app, host=host, port=port)
+        if mode == "compare" and mapping_choice == "existing" and not mapping_file:
+            return templates.TemplateResponse(
+                "new_run.html",
+                {
+                    "request": request,
+                    "rules": _list_rules(),
+                    "mappings": _list_mappings(),
+                    "mapping_summaries": _mapping_summaries(),
+                    "error": "Select a mapping file or choose to create a new mapping.",
+                },
+            )

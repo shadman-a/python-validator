@@ -3,7 +3,6 @@ name = "csv-validator-web"
 version = "0.1.0"
 description = "Lightweight CSV validation web UI"
 readme = "README.md"
-requires-python = ">=3.10"
 dependencies = [
   "fastapi",
   "uvicorn",

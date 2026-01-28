@@ -1,32 +1,59 @@
 {% extends "base.html" %}
 {% block content %}
-<section class="card">
-  <h2>New Run</h2>
-  <p class="muted">Drop CSVs below or choose files. You can also paste a server path if the files already live here.</p>
-  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+<section class="card wizard" data-wizard>
+  <div class="wizard-header">
+    <div>
+      <h2>New Run</h2>
+      <p class="muted">Follow the steps below. We will guide you to the right mapping and launch your validation.</p>
+    </div>
+    <div class="wizard-progress">
+      <div class="progress-track"><span class="progress-bar" data-progress-bar></span></div>
+      <ol class="stepper">
+        <li data-step-label data-step-id="mode">Mode</li>
+        <li data-step-label data-step-id="rules">Rules</li>
+        <li data-step-label data-step-id="files">Files</li>
+        <li data-step-label data-step-id="mapping" data-compare-only>Mapping</li>
+        <li data-step-label data-step-id="review">Review</li>
+      </ol>
+    </div>
+  </div>
+  {% if error %}
+  <div class="callout error">
+    <strong>Action needed:</strong> {{ error }}
+  </div>
+  {% endif %}
   <form method="post" enctype="multipart/form-data" data-new-run>
-    <div class="form-section">
-      <h3>1) Choose a mode</h3>
+    <section class="wizard-step is-active" data-step="mode">
+      <div class="step-header">
+        <h3>1) Choose a mode</h3>
+        <p class="muted">Pick how you want to validate data today.</p>
+      </div>
       <div class="option-grid">
         <label class="option-card">
           <input type="radio" name="mode" value="single" checked />
-          <div>
+          <div class="option-content">
             <strong>Single CSV</strong>
             <span class="muted">Validate one file against a rule set.</span>
           </div>
         </label>
         <label class="option-card">
           <input type="radio" name="mode" value="compare" />
-          <div>
+          <div class="option-content">
             <strong>Compare CSVs</strong>
-            <span class="muted">Compare two files and optionally map fields.</span>
+            <span class="muted">Compare two files and map fields when needed.</span>
           </div>
         </label>
       </div>
-    </div>
+      <div class="step-actions">
+        <button class="button primary" type="button" data-step-next>Next</button>
+      </div>
+    </section>
 
-    <div class="form-section">
-      <h3>2) Rules</h3>
+    <section class="wizard-step" data-step="rules">
+      <div class="step-header">
+        <h3>2) Select rules</h3>
+        <p class="muted">Rules define what gets validated (required fields, ranges, comparisons).</p>
+      </div>
       <label>Rules file
         <select name="rule_file">
           {% for rule in rules %}
@@ -34,10 +61,17 @@
           {% endfor %}
         </select>
       </label>
-    </div>
+      <div class="step-actions">
+        <button class="button" type="button" data-step-prev>Back</button>
+        <button class="button primary" type="button" data-step-next>Next</button>
+      </div>
+    </section>
 
-    <div class="form-section">
-      <h3>3) CSV files</h3>
+    <section class="wizard-step" data-step="files">
+      <div class="step-header">
+        <h3>3) Add CSV files</h3>
+        <p class="muted">Upload files or paste server paths. We only need the headers for recommendations.</p>
+      </div>
       <div class="form-grid">
         <div>
           <h4>Left CSV</h4>
@@ -70,30 +104,95 @@
           </label>
         </div>
       </div>
-    </div>
+      <div class="step-actions">
+        <button class="button" type="button" data-step-prev>Back</button>
+        <button class="button primary" type="button" data-step-next>Next</button>
+      </div>
+    </section>
 
-    <div class="form-section" data-compare-only>
-      <h3>4) Mapping</h3>
-      <fieldset class="compact" data-mapping-choice>
-        <legend>Compare mode options</legend>
-        <label>
-          <input type="radio" name="mapping_choice" value="create" checked /> Create new mapping
-        </label>
-        <label>
-          <input type="radio" name="mapping_choice" value="existing" /> Use existing mapping
-        </label>
-        <label data-mapping-select class="helper">Mapping file
-          <select name="mapping_file">
-            <option value="">Select mapping</option>
-            {% for mapping in mappings %}
-            <option value="{{ mapping }}">{{ mapping }}</option>
-            {% endfor %}
-          </select>
-        </label>
-      </fieldset>
-    </div>
+    <section class="wizard-step" data-step="mapping" data-compare-only>
+      <div class="step-header">
+        <h3>4) Mapping</h3>
+        <p class="muted">We will recommend existing mappings based on your headers.</p>
+      </div>
+      <div class="mapping-grid">
+        <div class="mapping-panel">
+          <fieldset class="compact" data-mapping-choice>
+            <legend>Compare mode options</legend>
+            <label>
+              <input type="radio" name="mapping_choice" value="create" checked /> Create new mapping
+            </label>
+            <span class="muted helper">Build a new map with auto-suggested columns.</span>
+            <label>
+              <input type="radio" name="mapping_choice" value="existing" /> Use existing mapping
+            </label>
+            <span class="muted helper">Reuse a saved mapping when files align closely.</span>
+            <label data-mapping-select class="helper">Mapping file
+              <select name="mapping_file">
+                <option value="">Select mapping</option>
+                {% for mapping in mappings %}
+                <option value="{{ mapping }}">{{ mapping }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <div class="mapping-preview" data-mapping-preview>
+              <p class="muted">Pick a mapping to preview keys and coverage.</p>
+            </div>
+          </fieldset>
+        </div>
+        <div class="mapping-panel recommendations" data-mapping-recs>
+          <div class="panel-header">
+            <h4>Recommendations</h4>
+            <span class="chip" data-rec-status>Waiting for files</span>
+          </div>
+          <p class="muted">We score saved mappings using column name overlap.</p>
+          <div class="rec-list" data-rec-list></div>
+          <p class="muted rec-empty" data-rec-empty>Upload or provide both CSVs to see recommendations.</p>
+          <button class="button" type="button" data-action="use-top-rec">Use top recommendation</button>
+        </div>
+      </div>
+      <div class="step-actions">
+        <button class="button" type="button" data-step-prev>Back</button>
+        <button class="button primary" type="button" data-step-next>Next</button>
+      </div>
+    </section>
 
-    <button class="button primary" type="submit">Continue</button>
+    <section class="wizard-step" data-step="review">
+      <div class="step-header">
+        <h3>5) Review & run</h3>
+        <p class="muted">Double-check the configuration before starting.</p>
+      </div>
+      <div class="review-grid">
+        <div class="review-card">
+          <h4>Mode</h4>
+          <p data-summary-mode>Single CSV</p>
+        </div>
+        <div class="review-card">
+          <h4>Rules</h4>
+          <p data-summary-rule>--</p>
+        </div>
+        <div class="review-card">
+          <h4>Left CSV</h4>
+          <p data-summary-left>--</p>
+        </div>
+        <div class="review-card" data-summary-right-wrapper>
+          <h4>Right CSV</h4>
+          <p data-summary-right>--</p>
+        </div>
+        <div class="review-card" data-summary-mapping-wrapper>
+          <h4>Mapping</h4>
+          <p data-summary-mapping>--</p>
+        </div>
+      </div>
+      <div class="step-actions">
+        <button class="button" type="button" data-step-prev>Back</button>
+        <button class="button primary" type="submit" data-submit-label>Start run</button>
+      </div>
+    </section>
   </form>
 </section>
+
+<script type="application/json" id="mapping-summaries">
+  {{ (mapping_summaries or []) | tojson }}
+</script>
 {% endblock %}
