@@ -510,8 +510,15 @@ function setupNewRunForm() {
     if (currentStepIndex >= visibleSteps.length) {
       currentStepIndex = visibleSteps.length - 1;
     }
-    stepEls.forEach(step => step.classList.remove('is-active'));
-    visibleSteps[currentStepIndex].classList.add('is-active');
+    stepEls.forEach(step => {
+      step.classList.remove('is-active');
+      step.style.display = 'none';
+      step.setAttribute('aria-hidden', 'true');
+    });
+    const activeStep = visibleSteps[currentStepIndex];
+    activeStep.classList.add('is-active');
+    activeStep.style.display = '';
+    activeStep.setAttribute('aria-hidden', 'false');
     const visibleIds = visibleSteps.map(step => step.dataset.step);
     stepLabels.forEach(label => {
       const stepId = label.getAttribute('data-step-id');

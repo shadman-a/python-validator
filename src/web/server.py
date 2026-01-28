@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import mimetypes
 import webbrowser
 from datetime import datetime
 from pathlib import Path
@@ -30,6 +31,10 @@ UPLOADS_DIR = RUNS_DIR / "_uploads"
 def create_app() -> FastAPI:
     app = FastAPI()
     templates = Jinja2Templates(directory=str(BASE_DIR / "src" / "web" / "templates"))
+
+    # Ensure consistent static asset MIME types on Windows.
+    mimetypes.add_type("text/css", ".css")
+    mimetypes.add_type("application/javascript", ".js")
 
     app.mount("/static", StaticFiles(directory=str(BASE_DIR / "src" / "web" / "static")), name="static")
 
