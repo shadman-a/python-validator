@@ -192,7 +192,9 @@ function setupNewRunForm() {
   function getMode() {
     const checked = getCheckedValue(modeInputs);
     if (checked) return checked;
-    return modeInputs.length ? 'single' : 'compare';
+    const hidden = modeInputs.find(input => input.type === 'hidden' && input.value);
+    if (hidden) return hidden.value;
+    return modeInputs.length ? (modeInputs[0].value || 'single') : 'compare';
   }
 
   function normalizeHeader(value) {
